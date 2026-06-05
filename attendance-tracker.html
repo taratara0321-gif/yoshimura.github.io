@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="勤怠管理">
+  <title>勤怠管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f2744 100%);
+      --blue: #38bdf8;
+      --red: #f87171;
+      --muted: #64748b;
+      --text: #f1f5f9;
+      --card: rgba(255,255,255,0.04);
+      --card-border: rgba(255,255,255,0.08);
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: #0f172a;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      background: var(--bg);
+      font-family: var(--sans);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 0 32px;
+    }
+
+    /* ヘッダー */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      animation: slideIn 0.5s ease forwards;
+    }
+    .header-sub {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .header-time {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    /* カード共通 */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: slideIn 0.5s ease forwards;
+    }
+
+    /* ラベル */
+    .label {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* 出勤時間 */
+    .time-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 28px;
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      outline: none;
+      cursor: pointer;
+      letter-spacing: 3px;
+      -webkit-appearance: none;
+    }
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: 0.4;
+      width: 24px;
+      height: 24px;
+    }
+
+    /* 休憩スライダー */
+    .break-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    .break-value {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--blue);
+    }
+    .break-value span {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 3px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--blue);
+      cursor: pointer;
+      box-shadow: 0 0 12px #38bdf877;
+    }
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px;
+      color: #475569;
+      font-family: var(--mono);
+    }
+
+    /* 定時カード */
+    .end-card {
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 14px;
+      text-align: center;
+      animation: slideIn 0.5s ease forwards;
+      transition: background 0.4s, border-color 0.4s;
+    }
+    .end-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .end-time {
+      font-size: 72px;
+      font-weight: 700;
+      font-family: var(--mono);
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 8px;
+      transition: color 0.4s;
+    }
+    .end-note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ステータス＆プログレス */
+    .status-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      animation: slideIn 0.5s ease forwards;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .status-text {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .status-pct {
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(.4,0,.2,1);
+    }
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 10px;
+      color: #475569;
+      font-family: var(--mono);
+    }
+
+    /* フッター */
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      color: #334155;
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+
+    /* アニメーション */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.45; }
+    }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+
+    /* ホーム画面追加ガイド（初回のみ） */
+    .install-hint {
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.18);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: slideIn 0.5s ease forwards;
+    }
+    .install-hint-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .install-hint-text { font-size: 12px; color: #94a3b8; line-height: 1.6; }
+    .install-hint-text strong { color: var(--blue); }
+    .install-hint-close {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: #475569;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 0 0 8px;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <div class="header-sub">Attendance Tracker</div>
+    <h1>勤怠管理</h1>
+    <div class="header-time" id="currentTime">--:--</div>
+  </div>
+
+  <!-- ホーム画面追加ガイド -->
+  <div class="install-hint" id="installHint">
+    <div class="install-hint-icon">📲</div>
+    <div class="install-hint-text">
+      <strong>ホーム画面に追加する方法</strong><br>
+      Safari の <strong>共有ボタン（□↑）</strong> をタップ →「<strong>ホーム画面に追加</strong>」を選択
+    </div>
+    <button class="install-hint-close" onclick="closeHint()">✕</button>
+  </div>
+
+  <!-- 入力カード -->
+  <div class="card">
+    <!-- 出勤時間 -->
+    <div style="margin-bottom: 22px;">
+      <label class="label" for="startTime">出勤時間</label>
+      <input
+        class="time-input"
+        type="time"
+        id="startTime"
+        value="09:00"
+        min="07:00"
+        max="18:00"
+        oninput="update()"
+      >
+    </div>
+
+    <!-- 休憩時間 -->
+    <div>
+      <div class="break-row">
+        <label class="label" style="margin-bottom:0">休憩時間</label>
+        <div class="break-value" id="breakDisplay">45<span>分</span></div>
+      </div>
+      <input
+        type="range"
+        id="breakRange"
+        min="45" max="60" step="1" value="45"
+        oninput="updateBreak(this.value)"
+      >
+      <div class="range-labels"><span>45分</span><span>60分</span></div>
+    </div>
+  </div>
+
+  <!-- 定時表示カード -->
+  <div class="end-card" id="endCard"
+    style="background: rgba(56,189,248,0.07); border: 1px solid rgba(56,189,248,0.2);">
+    <div class="end-label">定時終了時刻</div>
+    <div class="end-time" id="endTime" style="color: #38bdf8;">--:--</div>
+    <div class="end-note" id="endNote">勤務 7時間 ＋ 休憩 45分</div>
+  </div>
+
+  <!-- ステータス＆プログレス -->
+  <div class="status-card" id="statusCard">
+    <div class="status-row">
+      <span class="status-text" id="statusText" style="color: #94a3b8;">---</span>
+      <span class="status-pct" id="pctText">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-bar" id="progressBar"
+        style="width:0%; background: linear-gradient(90deg, #38bdf8, #818cf8); box-shadow: 0 0 10px #38bdf866;">
+      </div>
+    </div>
+    <div class="timeline">
+      <span id="tlStart">09:00</span>
+      <span id="tlEnd">--:--</span>
+    </div>
+  </div>
+
+  <div class="footer">所定労働時間 7時間 ／ 対象時間帯 07:00 〜 18:00</div>
+</div>
+
+<script>
+  const WORK_MIN = 7 * 60;
+
+  function parseTime(str) {
+    const [h, m] = str.split(":").map(Number);
+    return h * 60 + m;
+  }
+  function formatTime(total) {
+    if (isNaN(total)) return "--:--";
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  }
+  function toHHMM(mins) {
+    if (mins <= 0) return "0時間00分";
+    return Math.floor(mins/60) + "時間" + String(mins%60).padStart(2,"0") + "分";
+  }
+
+  let breakMin = 45;
+
+  function updateBreak(val) {
+    breakMin = parseInt(val);
+    document.getElementById("breakDisplay").innerHTML = breakMin + "<span>分</span>";
+    // スライダーのグラデーション更新
+    const pct = ((breakMin - 45) / 15) * 100;
+    document.getElementById("breakRange").style.background =
+      `linear-gradient(to right, #38bdf8 0%, #38bdf8 ${pct}%, rgba(255,255,255,0.1) ${pct}%, rgba(255,255,255,0.1) 100%)`;
+    update();
+  }
+
+  function update() {
+    const startVal = document.getElementById("startTime").value || "09:00";
+    const startMin = parseTime(startVal);
+    const endMin = startMin + WORK_MIN + breakMin;
+    const endStr = formatTime(endMin);
+
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const diff = endMin - nowMin;
+
+    const isLate = diff < 0;
+
+    // 定時カード
+    const endCard = document.getElementById("endCard");
+    const endTimeEl = document.getElementById("endTime");
+    endCard.style.background = isLate ? "rgba(248,113,113,0.08)" : "rgba(56,189,248,0.07)";
+    endCard.style.border = isLate ? "1px solid rgba(248,113,113,0.25)" : "1px solid rgba(56,189,248,0.2)";
+    endTimeEl.textContent = endStr;
+    endTimeEl.style.color = isLate ? "#f87171" : "#38bdf8";
+    document.getElementById("endNote").textContent = `勤務 7時間 ＋ 休憩 ${breakMin}分`;
+
+    // プログレス
+    const workedRaw = nowMin - startMin - breakMin;
+    const worked = Math.max(0, workedRaw);
+    const pct = Math.min(100, Math.round((worked / WORK_MIN) * 100));
+
+    document.getElementById("pctText").textContent = pct + "%";
+    const bar = document.getElementById("progressBar");
+    bar.style.width = pct + "%";
+    if (isLate) {
+      bar.style.background = "linear-gradient(90deg, #f87171, #fb923c)";
+      bar.style.boxShadow = "0 0 10px #f8717166";
+    } else {
+      bar.style.background = "linear-gradient(90deg, #38bdf8, #818cf8)";
+      bar.style.boxShadow = "0 0 10px #38bdf866";
+    }
+
+    document.getElementById("tlStart").textContent = startVal;
+    document.getElementById("tlEnd").textContent = endStr;
+
+    // ステータス
+    const statusEl = document.getElementById("statusText");
+    statusEl.classList.remove("pulse");
+    if (nowMin < startMin) {
+      statusEl.textContent = "出勤前";
+      statusEl.style.color = "#94a3b8";
+    } else if (diff > 0) {
+      statusEl.textContent = `定時まで あと ${toHHMM(diff)}`;
+      statusEl.style.color = "#38bdf8";
+      if (diff < 30) statusEl.classList.add("pulse");
+    } else {
+      statusEl.textContent = `定時を ${toHHMM(Math.abs(diff))} 超過`;
+      statusEl.style.color = "#f87171";
+    }
+  }
+
+  // 現在時刻の表示
+  function tickClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,"0");
+    const mm = String(now.getMinutes()).padStart(2,"0");
+    document.getElementById("currentTime").textContent = `現在時刻 ${hh}:${mm}`;
+    update();
+  }
+
+  // ヒント非表示（localStorage で保持）
+  function closeHint() {
+    document.getElementById("installHint").style.display = "none";
+    try { localStorage.setItem("hintClosed", "1"); } catch(e) {}
+  }
+  try {
+    if (localStorage.getItem("hintClosed")) {
+      document.getElementById("installHint").style.display = "none";
+    }
+  } catch(e) {}
+
+  // 初期化
+  updateBreak(45);
+  tickClock();
+  setInterval(tickClock, 10000);
+</script>
+</body>
+</html>
