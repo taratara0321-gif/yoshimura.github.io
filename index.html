@@ -287,6 +287,18 @@
       >
     </div>
 
+    <!-- 休憩開始時刻 -->
+    <div style="margin-bottom: 22px;">
+      <label class="label" for="breakStart">休憩開始時刻</label>
+      <input
+        class="time-input"
+        type="time"
+        id="breakStart"
+        value="12:00"
+        oninput="update()"
+      >
+    </div>
+
     <!-- 休憩時間 -->
     <div>
       <div class="break-row">
@@ -301,6 +313,13 @@
       >
       <div class="range-labels"><span>45分</span><span>60分</span></div>
     </div>
+  </div>
+
+  <!-- 休憩終了時刻カード -->
+  <div class="card" style="text-align:center; padding: 18px 24px;">
+    <div class="end-label">休憩終了時刻</div>
+    <div style="font-size: 48px; font-weight:700; font-family: var(--mono); letter-spacing:3px; color: #a78bfa; line-height:1; margin-bottom:6px;" id="breakEndTime">--:--</div>
+    <div style="font-size:12px; color: var(--muted);" id="breakNote">休憩 12:00 〜 12:45</div>
   </div>
 
   <!-- 定時表示カード -->
@@ -363,7 +382,16 @@
 
   function update() {
     const startVal = document.getElementById("startTime").value || "09:00";
+    const breakStartVal = document.getElementById("breakStart").value || "12:00";
     const startMin = parseTime(startVal);
+    const breakStartMin = parseTime(breakStartVal);
+    const breakEndMin = breakStartMin + breakMin;
+    const breakEndStr = formatTime(breakEndMin);
+
+    // 休憩終了時刻カード更新
+    document.getElementById("breakEndTime").textContent = breakEndStr;
+    document.getElementById("breakNote").textContent = `休憩 ${breakStartVal} 〜 ${breakEndStr}（${breakMin}分）`;
+
     const endMin = startMin + WORK_MIN + breakMin;
     const endStr = formatTime(endMin);
 
