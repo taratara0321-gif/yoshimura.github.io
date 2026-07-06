@@ -24,15 +24,15 @@
       --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
     }
 
-    html, body {
-      height: 100%;
-      background: #0f172a;
+    html {
+      min-height: 100%;
     }
 
     body {
       min-height: 100vh;
       min-height: -webkit-fill-available;
       background: var(--bg);
+      background-attachment: fixed;
       font-family: var(--sans);
       display: flex;
       align-items: flex-start;
